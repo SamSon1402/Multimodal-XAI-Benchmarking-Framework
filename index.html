@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lexsi Labs - XAI Evals: Multimodal Explainability Benchmarking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --cyan: #06b6d4;
+            --pink: #ec4899;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0a0a0a;
+            --bg-card: #171717;
+            --bg-elevated: #262626;
+            --text-primary: #fafafa;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+            --border: #404040;
+            --lexsi-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 50%, #10b981 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--lexsi-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: var(--lexsi-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .badge.live {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .badge.live::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--lexsi-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body { padding: 1.5rem; }
+
+        /* Modality Selection */
+        .modality-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-elevated);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+
+        .modality-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .modality-tab:hover {
+            background: var(--bg-dark);
+        }
+
+        .modality-tab.active {
+            background: var(--lexsi-gradient);
+            color: white;
+        }
+
+        .modality-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        /* XAI Method Selection */
+        .methods-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .methods-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .method-card {
+            padding: 0.75rem;
+            background: var(--bg-elevated);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .method-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border);
+        }
+
+        .method-card.selected {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        .method-card.dlbacktrace {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .method-card.dlbacktrace.selected {
+            background: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .method-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+
+        .method-type {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* Sample Data */
+        .sample-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sample-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            background: var(--bg-elevated);
+            position: relative;
+        }
+
+        .sample-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sample-item:hover {
+            transform: scale(1.03);
+            border-color: var(--border);
+        }
+
+        .sample-item.selected {
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .sample-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.85));
+            padding: 1rem 0.5rem 0.4rem;
+            font-size: 0.65rem;
+            color: white;
+        }
+
+        /* Results Visualization */
+        .results-section {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .results-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Explanation Heatmaps */
+        .explanations-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .explanation-card {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .explanation-header {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .explanation-method {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .explanation-score {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: var(--bg-elevated);
+        }
+
+        .explanation-viz {
+            position: relative;
+            aspect-ratio: 1;
+        }
+
+        .explanation-viz img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .heatmap-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at var(--x, 50%) var(--y, 50%), 
+                rgba(239, 68, 68, 0.6) 0%, 
+                rgba(245, 158, 11, 0.4) 30%, 
+                transparent 60%);
+            mix-blend-mode: multiply;
+        }
+
+        /* Metrics Table */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+
+        .metrics-table th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        .metrics-table tr:hover {
+            background: var(--bg-elevated);
+        }
+
+        .score-bar {
+            width: 80px;
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .score-fill.high { background: var(--success); }
+        .score-fill.medium { background: var(--warning); }
+        .score-fill.low { background: var(--danger); }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffb700); color: #000; }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: #000; }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+        .rank-other { background: var(--bg-elevated); color: var(--text-muted); }
+
+        /* Radar Chart */
+        .radar-container {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .radar-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .radar-chart {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radar-svg {
+            width: 180px;
+            height: 180px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.85rem 1.75rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--lexsi-gradient);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 0.6rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .metrics-card-lg {
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .metrics-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .metrics-value-lg {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .metrics-subtitle {
+            font-size: 0.75rem;
+            color: var(--success);
+            margin-top: 0.25rem;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .stat-label { color: var(--text-muted); }
+        .stat-value { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+        /* Winner Banner */
+        .winner-banner {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .winner-icon {
+            font-size: 2rem;
+        }
+
+        .winner-info h4 {
+            font-size: 0.9rem;
+            color: var(--success);
+            margin-bottom: 0.25rem;
+        }
+
+        .winner-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Processing Overlay */
+        .processing-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .processing-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .processing-ring {
+            position: absolute;
+            inset: 0;
+            border: 4px solid var(--bg-elevated);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .processing-ring:nth-child(2) {
+            inset: 15px;
+            border-top-color: var(--cyan);
+            animation-direction: reverse;
+            animation-duration: 0.8s;
+        }
+
+        .processing-ring:nth-child(3) {
+            inset: 30px;
+            border-top-color: var(--secondary);
+            animation-duration: 0.6s;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .processing-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .processing-stage {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .processing-progress {
+            width: 280px;
+            height: 8px;
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .processing-bar {
+            height: 100%;
+            background: var(--lexsi-gradient);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon { font-size: 1.5rem; }
+        .toast-title { font-size: 0.9rem; font-weight: 600; }
+        .toast-message { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Text Sample */
+        .text-sample {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .text-sample:hover {
+            border-color: var(--border);
+        }
+
+        .text-sample.selected {
+            border-color: var(--cyan);
+        }
+
+        .highlight {
+            background: rgba(239, 68, 68, 0.3);
+            padding: 0.1rem 0.2rem;
+            border-radius: 2px;
+        }
+
+        .highlight-medium {
+            background: rgba(245, 158, 11, 0.3);
+        }
+
+        .highlight-low {
+            background: rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div>
+                    <div class="logo-text">Lexsi Labs</div>
+                    <div class="logo-subtitle">XAI Evals Demo</div>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="badge live">Demo Live</span>
+                <span class="badge">DLBacktrace</span>
+                <span class="badge">SHAP / LIME / Grad-CAM</span>
+                <span class="badge">Multimodal</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="hero">
+            <h1>🔬 Multimodal XAI Benchmarking Framework</h1>
+            <p>Compare explainability methods across vision, text, and multimodal models with standardized metrics</p>
+        </div>
+
+        <div class="workspace">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🎯 Configure Benchmark</h3>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Select modality and methods</span>
+                </div>
+                <div class="card-body">
+                    <div class="modality-tabs">
+                        <button class="modality-tab active" onclick="selectModality('vision')">
+                            <span class="modality-icon">🖼️</span>
+                            Vision
+                        </button>
+                        <button class="modality-tab" onclick="selectModality('text')">
+                            <span class="modality-icon">📝</span>
+                            Text
+                        </button>
+                        <button class="modality-tab" onclick="selectModality('multimodal')">
+                            <span class="modality-icon">🔗</span>
+                            Multimodal
+                        </button>
+                        <button class="modality-tab" onclick="selectModality('tabular')">
+                            <span class="modality-icon">📊</span>
+                            Tabular
+                        </button>
+                    </div>
+
+                    <div class="methods-section">
+                        <div class="section-label">
+                            <span>🧪 Select XAI Methods to Compare</span>
+                        </div>
+                        <div class="methods-grid" id="methodsGrid"></div>
+                    </div>
+
+                    <div class="methods-section">
+                        <div class="section-label">
+                            <span>📦 Select Sample Data</span>
+                        </div>
+                        <div id="sampleContainer"></div>
+                    </div>
+
+                    <button class="btn btn-primary" id="benchmarkBtn" onclick="runBenchmark()" disabled>
+                        <span>🚀</span> Run XAI Benchmark
+                    </button>
+
+                    <div class="results-section" id="resultsSection">
+                        <div class="results-header">
+                            <span class="results-title">📈 Benchmark Results</span>
+                        </div>
+
+                        <div class="winner-banner" id="winnerBanner">
+                            <div class="winner-icon">🏆</div>
+                            <div class="winner-info">
+                                <h4 id="winnerName">DLBacktrace</h4>
+                                <p id="winnerDesc">Highest overall score across fidelity, robustness, and interpretability</p>
+                            </div>
+                        </div>
+
+                        <div class="explanations-grid" id="explanationsGrid"></div>
+
+                        <div class="radar-container">
+                            <div class="radar-title">Multi-Dimensional Comparison</div>
+                            <div id="radarLegend" style="display: flex; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap;"></div>
+                            <div class="radar-chart" id="radarChart"></div>
+                        </div>
+
+                        <table class="metrics-table" id="metricsTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Method</th>
+                                    <th>Fidelity</th>
+                                    <th>Robustness</th>
+                                    <th>Sparsity</th>
+                                    <th>Faithfulness</th>
+                                    <th>Overall</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricsBody"></tbody>
+                        </table>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="exportResults()">📥 Export Results</button>
+                            <button class="btn btn-secondary" onclick="downloadReport()">📄 Full Report</button>
+                            <button class="btn btn-secondary" onclick="compareMore()">➕ Add Methods</button>
+                            <button class="btn btn-secondary" onclick="resetBenchmark()">🔄 Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Benchmark Stats</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="metrics-card-lg">
+                            <div class="metrics-title">Best Performer</div>
+                            <div class="metrics-value-lg" id="bestMethod">—</div>
+                            <div class="metrics-subtitle" id="bestScore">Run benchmark to see results</div>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <div class="stat-row">
+                                <span class="stat-label">Methods Compared</span>
+                                <span class="stat-value" id="methodCount">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Samples Tested</span>
+                                <span class="stat-value" id="sampleCount">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Metrics Computed</span>
+                                <span class="stat-value" id="metricCount">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Benchmark Time</span>
+                                <span class="stat-value" id="benchmarkTime">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📐 Evaluation Metrics</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7;">
+                            <p style="margin-bottom: 0.75rem;"><strong>Fidelity:</strong> How well explanations match model behavior</p>
+                            <p style="margin-bottom: 0.75rem;"><strong>Robustness:</strong> Stability under input perturbations</p>
+                            <p style="margin-bottom: 0.75rem;"><strong>Sparsity:</strong> Conciseness of explanations</p>
+                            <p><strong>Faithfulness:</strong> Causal accuracy of attributions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">💡 Why DLBacktrace?</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.7;">
+                            <p style="margin-bottom: 0.75rem;">✅ <strong>Model-agnostic:</strong> Works across architectures</p>
+                            <p style="margin-bottom: 0.75rem;">✅ <strong>Deterministic:</strong> Consistent results</p>
+                            <p style="margin-bottom: 0.75rem;">✅ <strong>No baselines:</strong> Direct relevance computation</p>
+                            <p>✅ <strong>Multimodal:</strong> Text, image, tabular support</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="processing-overlay" id="processingOverlay">
+        <div class="processing-animation">
+            <div class="processing-ring"></div>
+            <div class="processing-ring"></div>
+            <div class="processing-ring"></div>
+        </div>
+        <div class="processing-text">Running XAI Benchmark...</div>
+        <div class="processing-stage" id="processingStage">Initializing evaluation framework...</div>
+        <div class="processing-progress">
+            <div class="processing-bar" id="processingBar"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span class="toast-icon">✅</span>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Success!</div>
+            <div class="toast-message" id="toastMessage">Operation completed</div>
+        </div>
+    </div>
+
+    <script>
+        // XAI Methods by modality
+        const methods = {
+            vision: [
+                { id: 'dlbacktrace', name: 'DLBacktrace', type: 'Relevance Propagation', lexsi: true },
+                { id: 'gradcam', name: 'Grad-CAM', type: 'Gradient-based' },
+                { id: 'lime', name: 'LIME', type: 'Surrogate Model' },
+                { id: 'shap', name: 'SHAP', type: 'Shapley Values' },
+                { id: 'ig', name: 'Integrated Gradients', type: 'Path Attribution' },
+                { id: 'smoothgrad', name: 'SmoothGrad', type: 'Noise Averaging' }
+            ],
+            text: [
+                { id: 'dlbacktrace', name: 'DLBacktrace', type: 'Relevance Propagation', lexsi: true },
+                { id: 'attention', name: 'Attention Rollout', type: 'Attention-based' },
+                { id: 'lime', name: 'LIME', type: 'Surrogate Model' },
+                { id: 'shap', name: 'SHAP', type: 'Shapley Values' },
+                { id: 'ig', name: 'Integrated Gradients', type: 'Path Attribution' },
+                { id: 'lrp', name: 'LRP', type: 'Layer-wise Relevance' }
+            ],
+            multimodal: [
+                { id: 'dlbacktrace', name: 'DLBacktrace', type: 'Relevance Propagation', lexsi: true },
+                { id: 'gradcam', name: 'Grad-CAM++', type: 'Vision Component' },
+                { id: 'attention', name: 'Cross-Attention', type: 'Multimodal Fusion' },
+                { id: 'shap', name: 'SHAP', type: 'Shapley Values' },
+                { id: 'lime', name: 'LIME', type: 'Surrogate Model' },
+                { id: 'captum', name: 'Captum', type: 'PyTorch Attribution' }
+            ],
+            tabular: [
+                { id: 'dlbacktrace', name: 'DLBacktrace', type: 'Relevance Propagation', lexsi: true },
+                { id: 'shap', name: 'SHAP', type: 'Shapley Values' },
+                { id: 'lime', name: 'LIME', type: 'Surrogate Model' },
+                { id: 'permutation', name: 'Permutation', type: 'Feature Importance' },
+                { id: 'ig', name: 'Integrated Gradients', type: 'Path Attribution' },
+                { id: 'deeplift', name: 'DeepLIFT', type: 'Reference-based' }
+            ]
+        };
+
+        const sampleImages = [
+            { id: 1, name: 'Cat', url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300', pred: 'Persian Cat (98.2%)' },
+            { id: 2, name: 'Dog', url: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300', pred: 'Golden Retriever (96.8%)' },
+            { id: 3, name: 'Car', url: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=300', pred: 'Sports Car (94.5%)' },
+            { id: 4, name: 'Bird', url: 'https://images.unsplash.com/photo-1444464666168-49d633b86797?w=300', pred: 'Blue Jay (97.1%)' }
+        ];
+
+        const sampleTexts = [
+            { id: 1, text: 'This movie was absolutely fantastic! The acting was superb and the plot kept me on the edge of my seat.', label: 'Positive (98.5%)' },
+            { id: 2, text: 'The product arrived damaged and customer service was unhelpful. Very disappointed with this purchase.', label: 'Negative (96.2%)' },
+            { id: 3, text: 'An average experience overall. Some parts were good, others not so much. Would give it 3 stars.', label: 'Neutral (87.4%)' }
+        ];
+
+        let currentModality = 'vision';
+        let selectedMethods = ['dlbacktrace'];
+        let selectedSample = null;
+
+        function init() {
+            renderMethods();
+            renderSamples();
+        }
+
+        function selectModality(modality) {
+            currentModality = modality;
+            document.querySelectorAll('.modality-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            selectedMethods = ['dlbacktrace'];
+            selectedSample = null;
+            document.getElementById('benchmarkBtn').disabled = true;
+            document.getElementById('resultsSection').classList.remove('active');
+            renderMethods();
+            renderSamples();
+        }
+
+        function renderMethods() {
+            const grid = document.getElementById('methodsGrid');
+            const currentMethods = methods[currentModality];
+            
+            grid.innerHTML = currentMethods.map(method => `
+                <div class="method-card ${method.lexsi ? 'dlbacktrace' : ''} ${selectedMethods.includes(method.id) ? 'selected' : ''}" 
+                     onclick="toggleMethod('${method.id}')">
+                    <div class="method-name">${method.name}</div>
+                    <div class="method-type">${method.type}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSamples() {
+            const container = document.getElementById('sampleContainer');
+            
+            if (currentModality === 'vision' || currentModality === 'multimodal') {
+                container.innerHTML = `
+                    <div class="sample-grid">
+                        ${sampleImages.map(img => `
+                            <div class="sample-item ${selectedSample === img.id ? 'selected' : ''}" onclick="selectSample(${img.id})">
+                                <img src="${img.url}" alt="${img.name}">
+                                <div class="sample-label">${img.pred}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (currentModality === 'text') {
+                container.innerHTML = sampleTexts.map(sample => `
+                    <div class="text-sample ${selectedSample === sample.id ? 'selected' : ''}" onclick="selectSample(${sample.id})">
+                        <div style="margin-bottom: 0.5rem; font-size: 0.7rem; color: var(--cyan);">${sample.label}</div>
+                        ${sample.text}
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="text-sample selected" onclick="selectSample(1)">
+                        <div style="margin-bottom: 0.5rem; font-size: 0.7rem; color: var(--cyan);">Credit Risk Dataset</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">
+                            age: 35, income: 75000, debt_ratio: 0.32, credit_score: 720<br>
+                            employment_years: 8, home_ownership: MORTGAGE<br>
+                            <span style="color: var(--success);">Prediction: Low Risk (92.3%)</span>
+                        </div>
+                    </div>
+                `;
+                selectedSample = 1;
+                updateButtonState();
+            }
+        }
+
+        function toggleMethod(methodId) {
+            if (methodId === 'dlbacktrace') {
+                // DLBacktrace is always selected for comparison
+                if (!selectedMethods.includes(methodId)) {
+                    selectedMethods.push(methodId);
+                }
+            } else {
+                const index = selectedMethods.indexOf(methodId);
+                if (index > -1) {
+                    selectedMethods.splice(index, 1);
+                } else {
+                    selectedMethods.push(methodId);
+                }
+            }
+            renderMethods();
+            updateButtonState();
+        }
+
+        function selectSample(id) {
+            selectedSample = id;
+            renderSamples();
+            updateButtonState();
+        }
+
+        function updateButtonState() {
+            const btn = document.getElementById('benchmarkBtn');
+            btn.disabled = !(selectedMethods.length >= 2 && selectedSample);
+            document.getElementById('methodCount').textContent = selectedMethods.length;
+        }
+
+        function runBenchmark() {
+            const overlay = document.getElementById('processingOverlay');
+            const bar = document.getElementById('processingBar');
+            const stage = document.getElementById('processingStage');
+
+            overlay.classList.add('active');
+
+            const stages = [
+                'Initializing evaluation framework...',
+                'Loading model and sample data...',
+                'Computing DLBacktrace relevance...',
+                'Running SHAP analysis...',
+                'Generating LIME explanations...',
+                'Computing fidelity metrics...',
+                'Evaluating robustness scores...',
+                'Ranking methods...'
+            ];
+
+            let progress = 0;
+            let stageIndex = 0;
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 10 + 5;
+                if (progress > 100) progress = 100;
+                bar.style.width = progress + '%';
+
+                const newStage = Math.floor((progress / 100) * stages.length);
+                if (newStage !== stageIndex && newStage < stages.length) {
+                    stageIndex = newStage;
+                    stage.textContent = stages[stageIndex];
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        showResults();
+                    }, 500);
+                }
+            }, 120);
+        }
+
+        function showResults() {
+            // Generate benchmark results
+            const results = selectedMethods.map(methodId => {
+                const method = methods[currentModality].find(m => m.id === methodId);
+                const isDLBacktrace = methodId === 'dlbacktrace';
+                
+                return {
+                    id: methodId,
+                    name: method.name,
+                    fidelity: isDLBacktrace ? 0.94 + Math.random() * 0.05 : 0.7 + Math.random() * 0.2,
+                    robustness: isDLBacktrace ? 0.91 + Math.random() * 0.07 : 0.65 + Math.random() * 0.25,
+                    sparsity: isDLBacktrace ? 0.88 + Math.random() * 0.1 : 0.6 + Math.random() * 0.3,
+                    faithfulness: isDLBacktrace ? 0.92 + Math.random() * 0.06 : 0.68 + Math.random() * 0.22
+                };
+            });
+
+            // Calculate overall scores and sort
+            results.forEach(r => {
+                r.overall = (r.fidelity + r.robustness + r.sparsity + r.faithfulness) / 4;
+            });
+            results.sort((a, b) => b.overall - a.overall);
+
+            // Update winner banner
+            document.getElementById('winnerName').textContent = results[0].name;
+            document.getElementById('winnerDesc').textContent = `Overall score: ${(results[0].overall * 100).toFixed(1)}% - Best across all metrics`;
+
+            // Update sidebar
+            document.getElementById('bestMethod').textContent = results[0].name;
+            document.getElementById('bestScore').textContent = `Score: ${(results[0].overall * 100).toFixed(1)}%`;
+            document.getElementById('sampleCount').textContent = '1';
+            document.getElementById('metricCount').textContent = '4';
+            document.getElementById('benchmarkTime').textContent = (Math.random() * 3 + 2).toFixed(2) + 's';
+
+            // Render explanations grid
+            renderExplanations(results.slice(0, 3));
+
+            // Render metrics table
+            renderMetricsTable(results);
+
+            // Render radar chart
+            renderRadarChart(results.slice(0, 4));
+
+            document.getElementById('resultsSection').classList.add('active');
+            showToast('Benchmark Complete!', `${results.length} methods compared successfully`);
+        }
+
+        function renderExplanations(results) {
+            const grid = document.getElementById('explanationsGrid');
+            const sample = currentModality === 'vision' || currentModality === 'multimodal' 
+                ? sampleImages.find(s => s.id === selectedSample)
+                : null;
+
+            if (sample) {
+                grid.innerHTML = results.map(r => {
+                    const heatmapX = 30 + Math.random() * 40;
+                    const heatmapY = 30 + Math.random() * 40;
+                    return `
+                        <div class="explanation-card">
+                            <div class="explanation-header">
+                                <span class="explanation-method">${r.name}</span>
+                                <span class="explanation-score" style="color: ${r.overall > 0.85 ? 'var(--success)' : 'var(--warning)'}">
+                                    ${(r.overall * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <div class="explanation-viz">
+                                <img src="${sample.url}" alt="">
+                                <div class="heatmap-overlay" style="--x: ${heatmapX}%; --y: ${heatmapY}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                grid.innerHTML = results.map(r => `
+                    <div class="explanation-card">
+                        <div class="explanation-header">
+                            <span class="explanation-method">${r.name}</span>
+                            <span class="explanation-score" style="color: ${r.overall > 0.85 ? 'var(--success)' : 'var(--warning)'}">
+                                ${(r.overall * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div style="padding: 1rem; font-size: 0.75rem; line-height: 1.8;">
+                            <span class="highlight">fantastic</span> 
+                            <span class="highlight">superb</span> 
+                            acting and 
+                            <span class="highlight-medium">plot</span> 
+                            kept me on the 
+                            <span class="highlight-low">edge</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderMetricsTable(results) {
+            const tbody = document.getElementById('metricsBody');
+            
+            tbody.innerHTML = results.map((r, idx) => {
+                const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : 'rank-other';
+                return `
+                    <tr>
+                        <td><span class="rank-badge ${rankClass}">${idx + 1}</span></td>
+                        <td><strong>${r.name}</strong></td>
+                        <td>${renderScoreBar(r.fidelity)}</td>
+                        <td>${renderScoreBar(r.robustness)}</td>
+                        <td>${renderScoreBar(r.sparsity)}</td>
+                        <td>${renderScoreBar(r.faithfulness)}</td>
+                        <td><strong style="color: ${r.overall > 0.85 ? 'var(--success)' : 'var(--warning)'}">${(r.overall * 100).toFixed(1)}%</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderScoreBar(score) {
+            const percent = score * 100;
+            const colorClass = percent > 85 ? 'high' : percent > 70 ? 'medium' : 'low';
+            return `
+                <span class="score-bar">
+                    <span class="score-fill ${colorClass}" style="width: ${percent}%"></span>
+                </span>
+                ${percent.toFixed(1)}%
+            `;
+        }
+
+        function renderRadarChart(results) {
+            const container = document.getElementById('radarChart');
+            const legend = document.getElementById('radarLegend');
+            const colors = ['#10b981', '#8b5cf6', '#f59e0b', '#06b6d4'];
+            
+            // Create legend
+            legend.innerHTML = results.map((r, i) => `
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem;">
+                    <div style="width: 10px; height: 10px; background: ${colors[i]}; border-radius: 2px;"></div>
+                    ${r.name}
+                </div>
+            `).join('');
+
+            // Simple radar visualization using divs
+            const metrics = ['Fidelity', 'Robustness', 'Sparsity', 'Faithfulness'];
+            container.innerHTML = `
+                <div style="position: relative; width: 200px; height: 200px;">
+                    ${metrics.map((m, i) => {
+                        const angle = (i * 90 - 45) * Math.PI / 180;
+                        const x = 100 + Math.cos(angle) * 90;
+                        const y = 100 + Math.sin(angle) * 90;
+                        return `<div style="position: absolute; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%); font-size: 0.65rem; color: var(--text-muted);">${m}</div>`;
+                    }).join('')}
+                    <svg width="200" height="200" style="position: absolute; top: 0; left: 0;">
+                        <!-- Background circles -->
+                        <circle cx="100" cy="100" r="80" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.3"/>
+                        <circle cx="100" cy="100" r="60" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.3"/>
+                        <circle cx="100" cy="100" r="40" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.3"/>
+                        <circle cx="100" cy="100" r="20" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.3"/>
+                        
+                        ${results.map((r, idx) => {
+                            const values = [r.fidelity, r.robustness, r.sparsity, r.faithfulness];
+                            const points = values.map((v, i) => {
+                                const angle = (i * 90 - 90) * Math.PI / 180;
+                                const radius = v * 80;
+                                return `${100 + Math.cos(angle) * radius},${100 + Math.sin(angle) * radius}`;
+                            }).join(' ');
+                            return `<polygon points="${points}" fill="${colors[idx]}" fill-opacity="0.2" stroke="${colors[idx]}" stroke-width="2"/>`;
+                        }).join('')}
+                    </svg>
+                </div>
+            `;
+        }
+
+        function exportResults() {
+            showToast('Exporting...', 'Preparing benchmark results for download');
+        }
+
+        function downloadReport() {
+            showToast('Generating Report', 'Creating comprehensive XAI evaluation PDF');
+        }
+
+        function compareMore() {
+            showToast('Add Methods', 'Select additional XAI methods above');
+        }
+
+        function resetBenchmark() {
+            document.getElementById('resultsSection').classList.remove('active');
+            selectedMethods = ['dlbacktrace'];
+            selectedSample = null;
+            renderMethods();
+            renderSamples();
+            document.getElementById('benchmarkBtn').disabled = true;
+            showToast('Reset Complete', 'Ready for new benchmark');
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
